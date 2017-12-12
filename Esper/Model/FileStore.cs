@@ -15,17 +15,21 @@ namespace Esper.Model
             Lua
         }
 
+        public Encoding Encoding { get; private set; }
         public string FullSystemPath { get; private set; }
 
         public FileStore(string fullSystemPath)
         {
             FullSystemPath = fullSystemPath;
+            Encoding = Encoding.GetEncoding(1251);
         }
 
         public string[] ReadFile(FileStore.File file)
         {
-            return System.IO.File.ReadAllLines(
-                System.IO.Path.Combine(file.Directory.SystemPath, file.Name));
+            var s = System.IO.File.ReadAllLines(
+                System.IO.Path.Combine(file.Directory.SystemPath, file.Name),
+                Encoding);
+            return s;
         }
 
         public Directory GetFullTree()
@@ -99,7 +103,7 @@ namespace Esper.Model
 
             public string GetFullPath()
             {
-                if (!string.IsNullOrEmpty(Name) && Directory!=null && Directory.SystemPath != null)
+                if (!string.IsNullOrEmpty(Name) && Directory != null && Directory.SystemPath != null)
                 {
                     return System.IO.Path.Combine(Directory.SystemPath, Name);
                 }
@@ -111,9 +115,9 @@ namespace Esper.Model
                 switch (ftype)
                 {
                     case FileType.Text:
-                        return "txt";
+                        return ".txt";
                     case FileType.Lua:
-                        return "lua";
+                        return ".lua";
                     default:
                         return null;
                 }
@@ -124,9 +128,9 @@ namespace Esper.Model
                 if (string.IsNullOrEmpty(ext)) return FileType.Unknown;
                 switch (ext.ToLower())
                 {
-                    case "txt":
+                    case ".txt":
                         return FileType.Text;
-                    case "lua":
+                    case ".lua":
                         return FileType.Lua;
                     default:
                         return FileType.Unknown;

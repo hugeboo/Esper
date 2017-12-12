@@ -34,6 +34,15 @@ namespace Esper.WinForms
             _treeViewController.NodeDoubleClick += treeViewController_NodeDoubleClick;
         }
 
+        public void SaveCurrentFile()
+        {
+            var item = _items.FirstOrDefault(it => it.Page == _tabControl.SelectedTab);
+            if (item != null)
+            {
+
+            }
+        }
+
         private void tabControl_MouseDown(object sender, MouseEventArgs e)
         {
             for (int i = 0; i < _tabControl.TabPages.Count; i++)
@@ -62,6 +71,28 @@ namespace Esper.WinForms
             _tabControl.Visible = _tabControl.TabPages.Count > 0;
         }
 
+        private void editor_TextChanged(object sender, EventArgs e)
+        {
+            var item = _items.FirstOrDefault(it => it.Editor == sender);
+            if (item != null)
+            {
+                var s = item.File.Name;
+                if (item.Editor.Modified) s += "*";
+                if (item.Page.Text != s)
+                {
+                    item.Page.Text = s;
+                }
+            }
+        }
+
+        private void treeViewController_NodeDoubleClick(object sender, FilesTreeViewController.NodeEventArgs e)
+        {
+            if (e.File != null)
+            {
+                AddOrActivatePage(e.File);
+            }
+        }
+
         private void AddOrActivatePage(FileStore.File file)
         {
             var item = _items.FirstOrDefault(it => Equals(it.File, file));
@@ -75,10 +106,8 @@ namespace Esper.WinForms
                 };
                 item.Page.Text = file.Name;
                 item.Page.Controls.Add(item.Editor);
-                item.Editor.Dock = DockStyle.Fill;
-                item.Editor.BorderStyle = BorderStyle.None;
-                item.Editor.EolMode = Eol.CrLf;
-                item.Editor.TextChanged += editor_TextChanged;
+
+                ScintillaHelper.InitScintilla(item.Editor);
 
                 switch (file.Type)
                 {
@@ -90,6 +119,7 @@ namespace Esper.WinForms
                         break;
                 }
 
+                item.Editor.TextChanged += editor_TextChanged;
                 item.Editor.Text = string.Join("\n", _fileStore.ReadFile(file));
                 item.Editor.SetSavePoint();
                 item.Editor.EmptyUndoBuffer();
@@ -102,31 +132,10 @@ namespace Esper.WinForms
             _tabControl.Visible = true;
         }
 
-        private void editor_TextChanged(object sender, EventArgs e)
-        {
-            var item = _items.FirstOrDefault(it => it.Editor == sender);
-            if (item != null)
-            {
-                item.Page.Text = item.File.Name;
-            }
-            if (item.Editor.Modified)
-            {
-                item.Page.Text += "*";
-            }
-        }
-
         private void DeleteItem(TabPage page)
         {
             var item = _items.FirstOrDefault(it => it.Page == page);
             if (item != null) _items.Remove(item);
-        }
-
-        private void treeViewController_NodeDoubleClick(object sender, FilesTreeViewController.NodeEventArgs e)
-        {
-            if (e.File != null)
-            {
-                AddOrActivatePage(e.File);
-            }
         }
 
         private sealed class TabItem

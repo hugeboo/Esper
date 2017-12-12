@@ -29,5 +29,10 @@ namespace Esper
             _filesTreeController.Init();
             //_filesTabController.
         }
+
+        private void saveToolStripButton_Click(object sender, EventArgs e)
+        {
+            _filesTabController.SaveCurrentFile();
+        }
     }
 }
