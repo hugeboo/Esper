@@ -24,12 +24,17 @@ namespace Esper.Model
             Encoding = Encoding.GetEncoding(1251);
         }
 
-        public string[] ReadFile(FileStore.File file)
+        public string ReadAllText(FileStore.File file)
         {
-            var s = System.IO.File.ReadAllLines(
-                System.IO.Path.Combine(file.Directory.SystemPath, file.Name),
-                Encoding);
+            var s = System.IO.File.ReadAllText(
+                System.IO.Path.Combine(file.Directory.SystemPath, file.Name), Encoding);
             return s;
+        }
+
+        public void SaveAllText(FileStore.File file, string text)
+        {
+            System.IO.File.WriteAllText(
+                System.IO.Path.Combine(file.Directory.SystemPath, file.Name), text, Encoding);
         }
 
         public Directory GetFullTree()

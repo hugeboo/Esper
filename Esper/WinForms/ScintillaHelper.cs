@@ -18,15 +18,15 @@ namespace Esper.WinForms
             editor.Dock = DockStyle.Fill;
             editor.BorderStyle = BorderStyle.None;
             editor.EolMode = Eol.CrLf;
-            //editor.WrapMode = WrapMode.None;
-            //editor.IndentationGuides = IndentView.LookBoth;
+            editor.WrapMode = WrapMode.None;
+            editor.IndentationGuides = IndentView.LookBoth;
 
             // STYLING
             //InitColors(editor);
-            //InitSyntaxColoring2(editor);
+            InitSyntaxColoring2(editor);
 
             // NUMBER MARGIN
-            //InitNumberMargin(editor);
+            InitNumberMargin(editor);
 
             // BOOKMARK MARGIN
             //InitBookmarkMargin(editor);

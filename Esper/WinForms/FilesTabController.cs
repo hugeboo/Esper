@@ -13,12 +13,104 @@ using Esper.Model;
 
 namespace Esper.WinForms
 {
-    internal sealed class FilesTabController
+    internal sealed class FilesTabController : ICopyPaste, IFileSave
     {
         private readonly TabControl _tabControl;
         private readonly FileStore _fileStore;
         private readonly FilesTreeViewController _treeViewController;
         private readonly List<TabItem> _items = new List<TabItem>();
+
+        public bool CanCut
+        {
+            get
+            {
+                var item = GetSelectedItem();
+                return item != null && !string.IsNullOrEmpty(item.Editor.SelectedText);
+            }
+        }
+
+        public bool CanCopy
+        {
+            get
+            {
+                var item = GetSelectedItem();
+                return item != null && !string.IsNullOrEmpty(item.Editor.SelectedText);
+            }
+        }
+
+        public bool CanPaste
+        {
+            get
+            {
+                var item = GetSelectedItem();
+                return item != null && item.Editor.CanPaste;
+            }
+        }
+
+        public bool CanSelectAll
+        {
+            get
+            {
+                var item = GetSelectedItem();
+                return item != null && item.Editor.CanSelect;
+            }
+        }
+
+        public bool CanUndo
+        {
+            get
+            {
+                var item = GetSelectedItem();
+                return item != null && item.Editor.CanUndo;
+            }
+        }
+
+        public bool CanRedo
+        {
+            get
+            {
+                var item = GetSelectedItem();
+                return item != null && item.Editor.CanRedo;
+            }
+        }
+
+        public bool CanSaveFile
+        {
+            get
+            {
+                var item = GetSelectedItem();
+                return item != null;
+            }
+        }
+
+        public bool CanSaveAsFile
+        {
+            get
+            {
+                var item = GetSelectedItem();
+                return item != null;
+            }
+        }
+
+        public bool CanPrintFile
+        {
+            get
+            {
+                return false;
+                //var item = GetSelectedItem();
+                //return item != null;
+            }
+        }
+
+        public bool CanPrintPreviewFile
+        {
+            get
+            {
+                return false;
+                //var item = GetSelectedItem();
+                //return item != null;
+            }
+        }
 
         public FilesTabController(TabControl tabControl, FileStore fileStore, FilesTreeViewController treeViewController)
         {
@@ -34,13 +126,70 @@ namespace Esper.WinForms
             _treeViewController.NodeDoubleClick += treeViewController_NodeDoubleClick;
         }
 
-        public void SaveCurrentFile()
+        public void Cut()
         {
-            var item = _items.FirstOrDefault(it => it.Page == _tabControl.SelectedTab);
+            var item = GetSelectedItem();
+            if (item != null) item.Editor.Cut();
+        }
+
+        public void Copy()
+        {
+            var item = GetSelectedItem();
+            if (item != null) item.Editor.Copy();
+        }
+
+        public void Paste()
+        {
+            var item = GetSelectedItem();
+            if (item != null) item.Editor.Paste();
+        }
+
+        public void SelectAll()
+        {
+            var item = GetSelectedItem();
+            if (item != null) item.Editor.SelectAll();
+        }
+
+        public void Undo()
+        {
+            var item = GetSelectedItem();
+            if (item != null) item.Editor.Undo();
+        }
+
+        public void Redo()
+        {
+            var item = GetSelectedItem();
+            if (item != null) item.Editor.Redo();
+        }
+
+        public void SaveFile()
+        {
+            var item = GetSelectedItem();
             if (item != null)
             {
-
+                _fileStore.SaveAllText(item.File, item.Editor.Text);//!!!! thread?
+                SetSavePoint(item);
             }
+        }
+
+        public void SaveAsFile()
+        {
+            //...
+        }
+
+        public void PrintFile()
+        {
+            //...
+        }
+
+        public void PrintPreviewFile()
+        {
+            //...
+        }
+
+        private TabItem GetSelectedItem()
+        {
+            return _items.FirstOrDefault(it => it.Page == _tabControl.SelectedTab);
         }
 
         private void tabControl_MouseDown(object sender, MouseEventArgs e)
@@ -73,16 +222,7 @@ namespace Esper.WinForms
 
         private void editor_TextChanged(object sender, EventArgs e)
         {
-            var item = _items.FirstOrDefault(it => it.Editor == sender);
-            if (item != null)
-            {
-                var s = item.File.Name;
-                if (item.Editor.Modified) s += "*";
-                if (item.Page.Text != s)
-                {
-                    item.Page.Text = s;
-                }
-            }
+            CheckTextModified(_items.FirstOrDefault(it => it.Editor == sender));
         }
 
         private void treeViewController_NodeDoubleClick(object sender, FilesTreeViewController.NodeEventArgs e)
@@ -120,9 +260,8 @@ namespace Esper.WinForms
                 }
 
                 item.Editor.TextChanged += editor_TextChanged;
-                item.Editor.Text = string.Join("\n", _fileStore.ReadFile(file));
-                item.Editor.SetSavePoint();
-                item.Editor.EmptyUndoBuffer();
+                item.Editor.Text = _fileStore.ReadAllText(file); //!!!! thread?
+                SetSavePoint(item);
 
                 _tabControl.TabPages.Add(item.Page);
                 _items.Add(item);
@@ -130,6 +269,26 @@ namespace Esper.WinForms
             _tabControl.SelectedTab = item.Page;
             item.Editor.Focus();
             _tabControl.Visible = true;
+        }
+
+        private void SetSavePoint(TabItem item)
+        {
+            item.Editor.SetSavePoint();
+            item.Editor.EmptyUndoBuffer();
+            CheckTextModified(item);
+        }
+
+        private void CheckTextModified(TabItem item)
+        {
+            if (item != null)
+            {
+                var s = item.File.Name;
+                if (item.Editor.Modified) s += "*";
+                if (item.Page.Text != s)
+                {
+                    item.Page.Text = s;
+                }
+            }
         }
 
         private void DeleteItem(TabPage page)
