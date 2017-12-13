@@ -23,11 +23,12 @@ namespace Esper
         {
             InitializeComponent();
 
+            splitContainer2_Panel1_Resize(this, EventArgs.Empty);
+
             _fileStore = new FileStore("d:/TestCases");
             _filesTreeController = new FilesTreeViewController(filesTreeView, _fileStore);
             _filesTabController = new FilesTabController(filesTabControl, _fileStore, _filesTreeController);
             _filesTreeController.Init();
-            //_filesTabController.
         }
 
         private void cutToolStripButton_Click(object sender, EventArgs e)
@@ -144,6 +145,23 @@ namespace Esper
             indexToolStripMenuItem.Enabled = false;
             searchToolStripMenuItem.Enabled = false;
             aboutToolStripMenuItem.Enabled = false;
+
+            // Right Tabs
+            consoleTabPage.ImageKey = "connect_no.png";
+            consoleTabPage.ToolTipText = "Disconnected";
+
+            // Connection
+            connectToolStripButton.Enabled = true;
+            disconnectToolStripButton.Enabled = false;
+            uploadToolStripButton.Enabled = false;
+        }
+
+        private void splitContainer2_Panel1_Resize(object sender, EventArgs e)
+        {
+            int pw = splitContainer2.Panel1.Width;
+            int ph = splitContainer2.Panel1.Height;
+            selectFileLabel.Location = new Point(
+                (pw - selectFileLabel.Width) / 2, (ph - selectFileLabel.Height) / 2);
         }
     }
 }
