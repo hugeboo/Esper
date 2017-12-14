@@ -15,8 +15,6 @@ namespace Esper.WinForms
         private TextBox _consoleTextBox;
         private TextBox _sendTextBox;
 
-        private readonly List<string> _sendHistory = new List<string>();
-
         public bool IsConnected
         {
             get { return _connector.IsConnected; }
@@ -59,13 +57,15 @@ namespace Esper.WinForms
             if (e.KeyChar == (int)Keys.Enter)
             {
                 if (_connector.IsConnected) _connector.WriteLine(_sendTextBox.Text);
-                if (!string.IsNullOrEmpty(_sendTextBox.Text)) _sendHistory.Add(_sendTextBox.Text);
+                //if (!string.IsNullOrEmpty(_sendTextBox.Text)) _sendTextBox.AutoCompleteCustomSource.Add(_sendTextBox.Text);
                 _sendTextBox.Text = null;
+                e.Handled = true;
             }
             else if (e.KeyChar == (int)Keys.Escape)
             {
                 if (_connector.IsConnected) _connector.WriteLine("\x1b");
                 _sendTextBox.Text = null;
+                e.Handled = true;
             }
             //else if (e.KeyChar == (int)Keys.Down) // ??????
             //{

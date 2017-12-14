@@ -19,7 +19,7 @@ namespace Esper.Model
                 Thread.Sleep(50);
                 foreach (var line in lines)
                 {
-                    Do(stream, $"file.write([[{line}]])", 5000);
+                    Do(stream, $"file.writeline([[{line}]])", 5000);
                     Thread.Sleep(50);
                 }
                 Do(stream, "file.close()", 5000);
