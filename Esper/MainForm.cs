@@ -16,8 +16,10 @@ namespace Esper
     public partial class MainForm : Form
     {
         private FileStore _fileStore;
+        private ComEspConnector _connector;
         private FilesTreeViewController _filesTreeController;
         private FilesTabController _filesTabController;
+        private ConsoleController _consoleController;
 
         public MainForm()
         {
@@ -29,6 +31,13 @@ namespace Esper
             _filesTreeController = new FilesTreeViewController(filesTreeView, _fileStore);
             _filesTabController = new FilesTabController(filesTabControl, _fileStore, _filesTreeController);
             _filesTreeController.Init();
+
+            _connector = new ComEspConnector();
+            _connector.PortName = "COM5";
+            _connector.BaudRate = ComEspConnector.SerialBaudRate.BR_115200;
+            _connector.Connect();
+
+            _consoleController = new ConsoleController(_connector, consoleTextBox, sendConsoleTextBox);
         }
 
         private void cutToolStripButton_Click(object sender, EventArgs e)
@@ -111,6 +120,16 @@ namespace Esper
             this.Close();
         }
 
+        private void connectToolStripButton_Click(object sender, EventArgs e)
+        {
+            _connector.Connect();
+        }
+
+        private void disconnectToolStripButton_Click(object sender, EventArgs e)
+        {
+            _connector.Disconnect();
+        }
+
         private void updateTimer_Tick(object sender, EventArgs e)
         {
             // Edit
@@ -147,12 +166,14 @@ namespace Esper
             aboutToolStripMenuItem.Enabled = false;
 
             // Right Tabs
-            consoleTabPage.ImageKey = "connect_no.png";
-            consoleTabPage.ToolTipText = "Disconnected";
+            var ik = _connector.IsConnected ? "connect_established.png" : "connect_no.png";
+            if (consoleTabPage.ImageKey != ik) consoleTabPage.ImageKey = ik;
+            var t = _connector.IsConnected ? "Connected" : "Disconnected";
+            if (consoleTabPage.ToolTipText != t) consoleTabPage.ToolTipText = t;
 
             // Connection
-            connectToolStripButton.Enabled = true;
-            disconnectToolStripButton.Enabled = false;
+            connectToolStripButton.Enabled = !_connector.IsConnected;
+            disconnectToolStripButton.Enabled = _connector.IsConnected;
             uploadToolStripButton.Enabled = false;
         }
 

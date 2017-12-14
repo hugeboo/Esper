@@ -45,7 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\ComEspConnector.cs" />
     <Compile Include="Model\FileStore.cs" />
+    <Compile Include="Model\IEspConnector.cs" />
+    <Compile Include="Model\IEspDataStream.cs" />
+    <Compile Include="WinForms\ConsoleController.cs" />
     <Compile Include="WinForms\FilesTabController.cs" />
     <Compile Include="WinForms\FilesTreeViewController.cs" />
     <Compile Include="MainForm.cs">
