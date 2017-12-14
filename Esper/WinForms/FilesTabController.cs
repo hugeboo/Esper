@@ -187,6 +187,11 @@ namespace Esper.WinForms
             //...
         }
 
+        public FileStore.File GetSelectedFile()
+        {
+            return _items.FirstOrDefault(it => it.Page == _tabControl.SelectedTab)?.File;
+        }
+
         private TabItem GetSelectedItem()
         {
             return _items.FirstOrDefault(it => it.Page == _tabControl.SelectedTab);
@@ -244,7 +249,7 @@ namespace Esper.WinForms
                     Editor = new Scintilla(),
                     File = file
                 };
-                item.Page.Text = file.Name;
+                //item.Page.Text = file.GetPath();
                 item.Page.Controls.Add(item.Editor);
 
                 ScintillaHelper.InitScintilla(item.Editor);
@@ -282,7 +287,7 @@ namespace Esper.WinForms
         {
             if (item != null)
             {
-                var s = item.File.Name;
+                var s = item.File.GetPath();
                 if (item.Editor.Modified) s += "*";
                 if (item.Page.Text != s)
                 {

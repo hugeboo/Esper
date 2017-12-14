@@ -96,6 +96,7 @@
             this.connectToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.disconnectToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
+            this.restartToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.uploadToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
             this.helpToolStripButton = new System.Windows.Forms.ToolStripButton();
@@ -193,7 +194,7 @@
             // 
             this.splitContainer2.Panel2.Controls.Add(this.rightTabControl);
             this.splitContainer2.Size = new System.Drawing.Size(896, 557);
-            this.splitContainer2.SplitterDistance = 537;
+            this.splitContainer2.SplitterDistance = 512;
             this.splitContainer2.TabIndex = 0;
             // 
             // filesTabControl
@@ -204,7 +205,7 @@
             this.filesTabControl.Location = new System.Drawing.Point(0, 0);
             this.filesTabControl.Name = "filesTabControl";
             this.filesTabControl.SelectedIndex = 0;
-            this.filesTabControl.Size = new System.Drawing.Size(537, 557);
+            this.filesTabControl.Size = new System.Drawing.Size(512, 557);
             this.filesTabControl.TabIndex = 0;
             // 
             // tabControlContextMenuStrip
@@ -233,7 +234,7 @@
             // 
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Size = new System.Drawing.Size(529, 531);
+            this.tabPage1.Size = new System.Drawing.Size(504, 531);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -258,7 +259,7 @@
             this.rightTabControl.Name = "rightTabControl";
             this.rightTabControl.SelectedIndex = 0;
             this.rightTabControl.ShowToolTips = true;
-            this.rightTabControl.Size = new System.Drawing.Size(355, 557);
+            this.rightTabControl.Size = new System.Drawing.Size(380, 557);
             this.rightTabControl.TabIndex = 0;
             // 
             // consoleTabPage
@@ -268,7 +269,7 @@
             this.consoleTabPage.Location = new System.Drawing.Point(4, 23);
             this.consoleTabPage.Name = "consoleTabPage";
             this.consoleTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.consoleTabPage.Size = new System.Drawing.Size(347, 530);
+            this.consoleTabPage.Size = new System.Drawing.Size(372, 530);
             this.consoleTabPage.TabIndex = 0;
             this.consoleTabPage.Text = "Console";
             this.consoleTabPage.UseVisualStyleBackColor = true;
@@ -289,7 +290,7 @@
             // splitContainer3.Panel2
             // 
             this.splitContainer3.Panel2.Controls.Add(this.sendConsoleTextBox);
-            this.splitContainer3.Size = new System.Drawing.Size(341, 524);
+            this.splitContainer3.Size = new System.Drawing.Size(366, 524);
             this.splitContainer3.SplitterDistance = 495;
             this.splitContainer3.TabIndex = 0;
             // 
@@ -303,7 +304,7 @@
             this.consoleTextBox.Name = "consoleTextBox";
             this.consoleTextBox.ReadOnly = true;
             this.consoleTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.consoleTextBox.Size = new System.Drawing.Size(341, 495);
+            this.consoleTextBox.Size = new System.Drawing.Size(366, 495);
             this.consoleTextBox.TabIndex = 0;
             this.consoleTextBox.WordWrap = false;
             // 
@@ -313,7 +314,7 @@
             this.sendConsoleTextBox.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.sendConsoleTextBox.Location = new System.Drawing.Point(0, 0);
             this.sendConsoleTextBox.Name = "sendConsoleTextBox";
-            this.sendConsoleTextBox.Size = new System.Drawing.Size(341, 23);
+            this.sendConsoleTextBox.Size = new System.Drawing.Size(366, 23);
             this.sendConsoleTextBox.TabIndex = 0;
             this.sendConsoleTextBox.WordWrap = false;
             // 
@@ -584,6 +585,7 @@
             this.connectToolStripButton,
             this.disconnectToolStripButton,
             this.toolStripSeparator8,
+            this.restartToolStripButton,
             this.uploadToolStripButton,
             this.toolStripSeparator9,
             this.helpToolStripButton});
@@ -696,6 +698,16 @@
             this.toolStripSeparator8.Name = "toolStripSeparator8";
             this.toolStripSeparator8.Size = new System.Drawing.Size(6, 25);
             // 
+            // restartToolStripButton
+            // 
+            this.restartToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.restartToolStripButton.Image = global::Esper.Properties.Resources.power_restart;
+            this.restartToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.restartToolStripButton.Name = "restartToolStripButton";
+            this.restartToolStripButton.Size = new System.Drawing.Size(23, 22);
+            this.restartToolStripButton.Text = "node.restart()";
+            this.restartToolStripButton.Click += new System.EventHandler(this.restartToolStripButton_Click);
+            // 
             // uploadToolStripButton
             // 
             this.uploadToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -704,6 +716,7 @@
             this.uploadToolStripButton.Name = "uploadToolStripButton";
             this.uploadToolStripButton.Size = new System.Drawing.Size(23, 22);
             this.uploadToolStripButton.Text = "Upload";
+            this.uploadToolStripButton.Click += new System.EventHandler(this.uploadToolStripButton_Click);
             // 
             // toolStripSeparator9
             // 
@@ -834,6 +847,7 @@
         private System.Windows.Forms.SplitContainer splitContainer3;
         private System.Windows.Forms.TextBox consoleTextBox;
         private System.Windows.Forms.TextBox sendConsoleTextBox;
+        private System.Windows.Forms.ToolStripButton restartToolStripButton;
     }
 }
 

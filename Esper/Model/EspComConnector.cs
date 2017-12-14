@@ -8,7 +8,7 @@ using System.IO.Ports;
 
 namespace Esper.Model
 {
-    internal sealed class ComEspConnector : IEspConnector
+    internal sealed class EspComConnector : IEspConnector
     {
         public enum SerialBaudRate
         {
@@ -34,7 +34,7 @@ namespace Esper.Model
         public SerialBaudRate BaudRate { get; set; }
         public string PortName { get; set; }
 
-        public ComEspConnector()
+        public EspComConnector()
         {
             BaudRate = SerialBaudRate.BR_115200;
             PortName = GetAvailablePortNames().FirstOrDefault();
@@ -47,7 +47,7 @@ namespace Esper.Model
 
         public void Connect()
         {
-            if (_isDisposed) throw new ObjectDisposedException(nameof(ComEspConnector));
+            if (_isDisposed) throw new ObjectDisposedException(nameof(EspComConnector));
             if (IsConnected) throw new InvalidOperationException("Already connected");
 
             try
@@ -69,6 +69,9 @@ namespace Esper.Model
                 _port.ReadBufferSize = 4096;
 
                 _port.Open();
+                //WriteLine(null);
+                //_port.DiscardInBuffer();
+                //_port.DiscardOutBuffer();
             }
             catch
             {
@@ -91,7 +94,7 @@ namespace Esper.Model
 
         public void Disconnect()
         {
-            if (_isDisposed) throw new ObjectDisposedException(nameof(ComEspConnector));
+            if (_isDisposed) throw new ObjectDisposedException(nameof(EspComConnector));
             if (IsConnected)
             {
                 try { _port.Dispose(); } catch { }
@@ -110,7 +113,7 @@ namespace Esper.Model
 
         public void WriteLine(string line)
         {
-            if (_isDisposed) throw new ObjectDisposedException(nameof(ComEspConnector));
+            if (_isDisposed) throw new ObjectDisposedException(nameof(EspComConnector));
             if (!IsConnected) throw new InvalidOperationException("Not connected");
             var arr = Encoding.GetEncoding(1251).GetBytes(line ?? "");
             for (int i = 0; i < arr.Length; i++)

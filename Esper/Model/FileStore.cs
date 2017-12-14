@@ -106,13 +106,28 @@ namespace Esper.Model
             public string Name { get; set; }
             public FileType Type { get; set; }
 
-            public string GetFullPath()
+            public string GetFullSystemPath()
             {
                 if (!string.IsNullOrEmpty(Name) && Directory != null && Directory.SystemPath != null)
                 {
                     return System.IO.Path.Combine(Directory.SystemPath, Name);
                 }
                 return null;
+            }
+
+            public string GetPath()
+            {
+                return _GetPath(Directory, Name);
+            }
+
+            private string _GetPath(Directory dir, string path)
+            {
+                if (dir.ParentDirectory!=null)
+                {
+                    path = dir.Name + "/" + path;
+                    _GetPath(dir.ParentDirectory, path);
+                }
+                return path;
             }
 
             public static string GetExtension(FileType ftype)

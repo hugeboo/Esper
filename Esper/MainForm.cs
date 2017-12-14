@@ -16,7 +16,7 @@ namespace Esper
     public partial class MainForm : Form
     {
         private FileStore _fileStore;
-        private ComEspConnector _connector;
+        private EspComConnector _connector;
         private FilesTreeViewController _filesTreeController;
         private FilesTabController _filesTabController;
         private ConsoleController _consoleController;
@@ -32,9 +32,9 @@ namespace Esper
             _filesTabController = new FilesTabController(filesTabControl, _fileStore, _filesTreeController);
             _filesTreeController.Init();
 
-            _connector = new ComEspConnector();
+            _connector = new EspComConnector();
             _connector.PortName = "COM5";
-            _connector.BaudRate = ComEspConnector.SerialBaudRate.BR_115200;
+            _connector.BaudRate = EspComConnector.SerialBaudRate.BR_115200;
             _connector.Connect();
 
             _consoleController = new ConsoleController(_connector, consoleTextBox, sendConsoleTextBox);
@@ -122,12 +122,31 @@ namespace Esper
 
         private void connectToolStripButton_Click(object sender, EventArgs e)
         {
-            _connector.Connect();
+            if (!_connector.IsConnected) _connector.Connect();
         }
 
         private void disconnectToolStripButton_Click(object sender, EventArgs e)
         {
-            _connector.Disconnect();
+            if (_connector.IsConnected) _connector.Disconnect();
+        }
+
+        private void restartToolStripButton_Click(object sender, EventArgs e)
+        {
+            if (_connector.IsConnected) _connector.WriteLine("node.restart()");
+        }
+
+        private void uploadToolStripButton_Click(object sender, EventArgs e)
+        {
+            if (_connector.IsConnected && _filesTabController.CanSaveFile)
+            {
+                _filesTabController.SaveFile();
+                var file = _filesTabController.GetSelectedFile();
+                Task.Run(() =>
+                {
+                    var dst = file.GetPath();
+                    EspExecutor.DoWriteFile(_connector, file.GetFullSystemPath(), dst);
+                });
+            }
         }
 
         private void updateTimer_Tick(object sender, EventArgs e)
@@ -174,7 +193,8 @@ namespace Esper
             // Connection
             connectToolStripButton.Enabled = !_connector.IsConnected;
             disconnectToolStripButton.Enabled = _connector.IsConnected;
-            uploadToolStripButton.Enabled = false;
+            restartToolStripButton.Enabled = _connector.IsConnected;
+            uploadToolStripButton.Enabled = _connector.IsConnected && _filesTabController.CanSaveFile;
         }
 
         private void splitContainer2_Panel1_Resize(object sender, EventArgs e)

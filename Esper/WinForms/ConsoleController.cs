@@ -28,21 +28,18 @@ namespace Esper.WinForms
             _consoleTextBox = consoleTextBox;
             _sendTextBox = sendTextBox;
 
-            _connector.RawLineReceived += connector_RawLineReceived;
             _connector.LineReceived += connector_LineReceived;
             _sendTextBox.KeyPress += sendTextBox_KeyPress;
         }
 
-        private void connector_RawLineReceived(object sender, string e)
+        public void Send(string command)
         {
-            //_consoleTextBox.BeginInvoke(new Action(() =>
-            //{
-            //    _consoleTextBox.AppendText(e);
-            //    if (e != "> " && e != ">> ")
-            //    {
-            //        _consoleTextBox.AppendText("\r\n");
-            //    }
-            //}));
+            _connector.WriteLine(command);
+        }
+
+        public void Clear()
+        {
+            _consoleTextBox.Text = null;
         }
 
         private void connector_LineReceived(object sender, LineReceivedEventArgs e)

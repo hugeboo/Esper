@@ -45,7 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Model\ComEspConnector.cs" />
+    <Compile Include="Model\EspComConnector.cs" />
+    <Compile Include="Model\EspExecutor.cs" />
     <Compile Include="Model\FileStore.cs" />
     <Compile Include="Model\IEspConnector.cs" />
     <Compile Include="Model\IEspDataStream.cs" />
@@ -110,6 +111,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\upload.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\power_restart.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
