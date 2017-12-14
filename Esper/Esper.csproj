@@ -46,11 +46,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\EspComConnector.cs" />
+    <Compile Include="Model\EsperProject.cs" />
     <Compile Include="Model\EspExecutor.cs" />
     <Compile Include="Model\FileStore.cs" />
     <Compile Include="Model\IEspConnector.cs" />
     <Compile Include="Model\IEspDataStream.cs" />
     <Compile Include="WinForms\ConsoleController.cs" />
+    <Compile Include="WinForms\CreateProjectForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinForms\CreateProjectForm.Designer.cs">
+      <DependentUpon>CreateProjectForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="WinForms\FilesTabController.cs" />
     <Compile Include="WinForms\FilesTreeViewController.cs" />
     <Compile Include="MainForm.cs">
@@ -78,6 +85,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="WinForms\CreateProjectForm.resx">
+      <DependentUpon>CreateProjectForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

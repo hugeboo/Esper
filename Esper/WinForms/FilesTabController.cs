@@ -16,7 +16,7 @@ namespace Esper.WinForms
     internal sealed class FilesTabController : ICopyPaste, IFileSave
     {
         private readonly TabControl _tabControl;
-        private readonly FileStore _fileStore;
+        private readonly EsperProject _project;
         private readonly FilesTreeViewController _treeViewController;
         private readonly List<TabItem> _items = new List<TabItem>();
 
@@ -112,10 +112,10 @@ namespace Esper.WinForms
             }
         }
 
-        public FilesTabController(TabControl tabControl, FileStore fileStore, FilesTreeViewController treeViewController)
+        public FilesTabController(TabControl tabControl, EsperProject project, FilesTreeViewController treeViewController)
         {
             _tabControl = tabControl;
-            _fileStore = fileStore;
+            _project = project;
             _treeViewController = treeViewController;
 
             _tabControl.TabPages.Clear();
@@ -167,7 +167,7 @@ namespace Esper.WinForms
             var item = GetSelectedItem();
             if (item != null)
             {
-                _fileStore.SaveAllText(item.File, item.Editor.Text);//!!!! thread?
+                _project.FileStore.SaveAllText(item.File, item.Editor.Text);//!!!! thread?
                 SetSavePoint(item);
             }
         }
@@ -190,6 +190,12 @@ namespace Esper.WinForms
         public FileStore.File GetSelectedFile()
         {
             return _items.FirstOrDefault(it => it.Page == _tabControl.SelectedTab)?.File;
+        }
+
+        public void CloseAllTab()
+        {
+            _tabControl.TabPages.Clear();
+            _items.Clear();
         }
 
         private TabItem GetSelectedItem()
@@ -219,8 +225,7 @@ namespace Esper.WinForms
             }
             else if (e.ClickedItem?.Tag?.ToString() == "CLOSE_ALL_TAB")
             {
-                _tabControl.TabPages.Clear();
-                _items.Clear();
+                CloseAllTab();
             }
             _tabControl.Visible = _tabControl.TabPages.Count > 0;
         }
@@ -265,7 +270,7 @@ namespace Esper.WinForms
                 }
 
                 item.Editor.TextChanged += editor_TextChanged;
-                item.Editor.Text = _fileStore.ReadAllText(file); //!!!! thread?
+                item.Editor.Text = _project.FileStore.ReadAllText(file); //!!!! thread?
                 SetSavePoint(item);
 
                 _tabControl.TabPages.Add(item.Page);

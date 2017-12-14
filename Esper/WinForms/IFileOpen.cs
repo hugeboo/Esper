@@ -9,6 +9,6 @@ namespace Esper.WinForms
     internal interface IFileOpen
     {
         void CreateFile();
-        void OpenFile();
+        void OpenFile(string fileName);
     }
 }

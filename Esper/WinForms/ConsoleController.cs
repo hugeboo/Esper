@@ -15,6 +15,9 @@ namespace Esper.WinForms
         private TextBox _consoleTextBox;
         private TextBox _sendTextBox;
 
+        private readonly List<string> _lstHistory = new List<string>();
+        private int _historyIndex = 0;
+
         public bool IsConnected
         {
             get { return _connector.IsConnected; }
@@ -28,6 +31,7 @@ namespace Esper.WinForms
 
             _connector.LineReceived += connector_LineReceived;
             _sendTextBox.KeyPress += sendTextBox_KeyPress;
+            _sendTextBox.KeyDown += sendTextBox_KeyDown;
         }
 
         public void Send(string command)
@@ -57,7 +61,12 @@ namespace Esper.WinForms
             if (e.KeyChar == (int)Keys.Enter)
             {
                 if (_connector.IsConnected) _connector.WriteLine(_sendTextBox.Text);
-                //if (!string.IsNullOrEmpty(_sendTextBox.Text)) _sendTextBox.AutoCompleteCustomSource.Add(_sendTextBox.Text);
+                if (!string.IsNullOrEmpty(_sendTextBox.Text))
+                {
+                    _lstHistory.Remove(_sendTextBox.Text);
+                    _lstHistory.Add(_sendTextBox.Text);
+                    _historyIndex = _lstHistory.Count - 1;
+                }
                 _sendTextBox.Text = null;
                 e.Handled = true;
             }
@@ -67,10 +76,29 @@ namespace Esper.WinForms
                 _sendTextBox.Text = null;
                 e.Handled = true;
             }
-            //else if (e.KeyChar == (int)Keys.Down) // ??????
-            //{
-            //    _sendTextBox.Text = _sendHistory.LastOrDefault();
-            //}
+        }
+
+        private void sendTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (_lstHistory.Count > 0)
+            {
+                if (e.KeyCode == Keys.Down)
+                {
+                        _sendTextBox.Text = _lstHistory[_historyIndex];
+                        _historyIndex -= 1;
+                        if (_historyIndex < 0) _historyIndex = _lstHistory.Count - 1;
+                        _sendTextBox.SelectionStart = 0;
+                        _sendTextBox.SelectionLength = _sendTextBox.Text.Length;
+                }
+                else if (e.KeyCode == Keys.Up)
+                {
+                    _sendTextBox.Text = _lstHistory[_historyIndex];
+                    _historyIndex += 1;
+                    if (_historyIndex >= _lstHistory.Count) _historyIndex = 0;
+                    _sendTextBox.SelectionStart = 0;
+                    _sendTextBox.SelectionLength = _sendTextBox.Text.Length;
+                }
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Esper
 {
     public partial class MainForm : Form
     {
-        private FileStore _fileStore;
+        private EsperProject _project;
         private EspComConnector _connector;
         private FilesTreeViewController _filesTreeController;
         private FilesTabController _filesTabController;
@@ -27,15 +27,16 @@ namespace Esper
 
             splitContainer2_Panel1_Resize(this, EventArgs.Empty);
 
-            _fileStore = new FileStore("d:/TestCases");
-            _filesTreeController = new FilesTreeViewController(filesTreeView, _fileStore);
-            _filesTabController = new FilesTabController(filesTabControl, _fileStore, _filesTreeController);
-            _filesTreeController.Init();
+            _filesTreeController = new FilesTreeViewController(filesTreeView);
+            _filesTreeController.OpenFile("d:/ESP8266/EsperProjects/Demo/Demo.esper");
+            _project = _filesTreeController.Project;
+
+            _filesTabController = new FilesTabController(filesTabControl, _project, _filesTreeController);
 
             _connector = new EspComConnector();
             _connector.PortName = "COM5";
             _connector.BaudRate = EspComConnector.SerialBaudRate.BR_115200;
-            _connector.Connect();
+            //_connector.Connect();
 
             _consoleController = new ConsoleController(_connector, consoleTextBox, sendConsoleTextBox);
         }
@@ -83,6 +84,26 @@ namespace Esper
         private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _filesTabController.SelectAll();
+        }
+
+        private void newToolStripButton_Click(object sender, EventArgs e)
+        {
+            _filesTreeController.CreateFile();
+        }
+
+        private void openToolStripButton_Click(object sender, EventArgs e)
+        {
+            _filesTreeController.OpenFile(null);
+        }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _filesTreeController.CreateFile();
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _filesTreeController.OpenFile(null);
         }
 
         private void saveToolStripButton_Click(object sender, EventArgs e)

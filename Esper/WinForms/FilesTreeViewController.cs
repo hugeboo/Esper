@@ -12,19 +12,24 @@ using Esper.Model;
 
 namespace Esper.WinForms
 {
-    internal sealed class FilesTreeViewController
+    internal sealed class FilesTreeViewController : IFileOpen
     {
         public event EventHandler<NodeEventArgs> FocusedNodeChanged;
         public event EventHandler<NodeEventArgs> NodeDoubleClick;
 
         private readonly TreeView _treeView;
-        private readonly FileStore _fileStore;
+        private EsperProject _project;
         private FileStore.Directory _root;
 
-        public FilesTreeViewController(TreeView treeView, FileStore fileStore)
+        public EsperProject Project
+        {
+            get { return _project; }
+        }
+
+        public FilesTreeViewController(TreeView treeView)
         {
             _treeView = treeView;
-            _fileStore = fileStore;
+            //_fileStore = fileStore;
 
             _treeView.MouseDown += treeView_MouseDown;
             _treeView.BeforeCollapse += treeView_BeforeCollapse;
@@ -64,16 +69,44 @@ namespace Esper.WinForms
             _treeView.SelectedNode = ht.Node;
         }
 
-        public void Init()
+        private void Init()
         {
-            _root = _fileStore.GetFullTree();
             _treeView.Nodes.Clear();
-
-            var node = new TreeNode(_root.Name);
+            var node = new TreeNode(_project.Name);
             node.Tag = _root;
             _treeView.Nodes.Add(node);
             _Init(_root, node.Nodes);
             node.Expand();
+        }
+
+        public void CreateFile()
+        {
+            var dlg = new CreateProjectForm();
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                _project = new EsperProject(dlg.FullFileName, true);
+                _root = _project.FileStore.GetFullTree();
+                Init();
+            }
+        }
+
+        public void OpenFile(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                var dlg = new OpenFileDialog();
+                dlg.Filter = "Project Files (*.esper)|*.esper";
+                dlg.DefaultExt = ".esper";
+                dlg.AddExtension = true;
+                dlg.CheckFileExists = true;
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    fileName = dlg.FileName;
+                }
+            }
+            _project = new EsperProject(fileName, true);
+            _root = _project.FileStore.GetFullTree();
+            Init();
         }
 
         private void _Init(FileStore.Directory root, TreeNodeCollection nodes)
@@ -85,11 +118,15 @@ namespace Esper.WinForms
                 nodes.Add(node);
                 _Init(dir, node.Nodes);
             }
+
             foreach(var file in root.Files)
             {
-                var node = new TreeNode(file.Name);
-                node.Tag = file;
-                nodes.Add(node);
+                if (file.GetFullSystemPath() != _project.FullFileName)
+                {
+                    var node = new TreeNode(file.Name);
+                    node.Tag = file;
+                    nodes.Add(node);
+                }
             }
         }
 
