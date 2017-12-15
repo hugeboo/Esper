@@ -55,8 +55,8 @@ namespace Esper.WinForms
             editor.Styles[Style.Cpp.CommentLine].ForeColor = Color.FromArgb(0, 128, 0); // Green
             editor.Styles[Style.Cpp.CommentLineDoc].ForeColor = Color.FromArgb(128, 128, 128); // Gray
             editor.Styles[Style.Cpp.Number].ForeColor = Color.Olive;
-            editor.Styles[Style.Cpp.Word].ForeColor = Color.DarkBlue;
-            editor.Styles[Style.Cpp.Word2].ForeColor = Color.Blue;
+            editor.Styles[Style.Cpp.Word].ForeColor = Color.Blue;
+            editor.Styles[Style.Cpp.Word2].ForeColor = Color.SlateBlue;
             editor.Styles[Style.Cpp.String].ForeColor = Color.FromArgb(163, 21, 21); // Red
             editor.Styles[Style.Cpp.Character].ForeColor = Color.FromArgb(163, 21, 21); // Red
             editor.Styles[Style.Cpp.Verbatim].ForeColor = Color.FromArgb(163, 21, 21); // Red
@@ -67,8 +67,8 @@ namespace Esper.WinForms
             editor.Lexer = Lexer.Cpp;
 
             // Set the keywords
-            editor.SetKeywords(0, "abstract as base break case catch checked continue default delegate do else event explicit extern false finally fixed for foreach goto if implicit in interface internal is lock namespace new null object operator out override params private protected public readonly ref return sealed sizeof stackalloc switch this throw true try typeof unchecked unsafe using virtual while");
-            editor.SetKeywords(1, "bool byte char class const decimal double enum float int long sbyte short static string struct uint ulong ushort void");
+            editor.SetKeywords(0, "local nill function end then abstract as base break case catch checked continue default delegate do else event explicit extern false finally fixed for foreach goto if implicit in interface internal is lock namespace new null object operator out override params private protected public readonly ref return sealed sizeof stackalloc switch this throw true try typeof unchecked unsafe using virtual while");
+            editor.SetKeywords(1, "collectgarbage wifi print sntp adc node bool byte char class const decimal double enum float int long sbyte short static string struct uint ulong ushort void");
         }
 
         private static void InitSyntaxColoring(Scintilla editor)

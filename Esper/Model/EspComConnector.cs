@@ -119,10 +119,10 @@ namespace Esper.Model
             for (int i = 0; i < arr.Length; i++)
             {
                 _port.Write(arr, i, 1);
-                Thread.Sleep(5);
+                Thread.Sleep(i == 0 ? 100 : 5);
             }
             _port.Write(new byte[] { 0x0d }, 0, 1);
-            Thread.Sleep(5);
+            Thread.Sleep(10);
         }
 
         private void ThreadReaderProc()

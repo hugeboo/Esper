@@ -19,8 +19,12 @@ namespace Esper.Model
                 Thread.Sleep(50);
                 foreach (var line in lines)
                 {
-                    Do(stream, $"file.writeline([[{line}]])", 5000);
-                    Thread.Sleep(50);
+                    var trim = line.Trim();
+                    if (!string.IsNullOrEmpty(trim) && !trim.StartsWith("--"))
+                    {
+                        Do(stream, $"file.writeline([[{trim}]])", 5000);
+                        Thread.Sleep(50);
+                    }
                 }
                 Do(stream, "file.close()", 5000);
                 Thread.Sleep(50);
@@ -36,18 +40,22 @@ namespace Esper.Model
         public static void Do(IEspDataStream stream, string command, int timeoutMSec)
         {
             AutoResetEvent ev = null;
-            bool ok = false;
+            bool ok = true;
             var h = new EventHandler<LineReceivedEventArgs>((o, e) =>
             {
                 if (e.Type == LineReceivedEventArgs.LineType.Ask)
                 {
-                    ok = true;
+                    //ok = true;
                     ev.Set();
                 }
                 else if (e.Type == LineReceivedEventArgs.LineType.DoubleAsk)
                 {
                     ok = false;
                     ev.Set();
+                }
+                else if (e.Type == LineReceivedEventArgs.LineType.General)
+                {
+                    if (e.Line.StartsWith("stdin:")) ok = false;
                 }
             });
 
