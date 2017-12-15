@@ -8,7 +8,7 @@ using System.IO.Ports;
 
 namespace Esper.Model
 {
-    internal sealed class EspComConnector : IEspConnector
+    public sealed class EspComConnector : IEspConnector
     {
         public enum SerialBaudRate
         {
@@ -22,6 +22,7 @@ namespace Esper.Model
         private bool _isDisposed;
         private SerialPort _port;
         private Thread _threadReader;
+        private EsperOptions.ComPortOptions _options;
 
         private readonly List<byte> _buffer = new List<byte>();
         private bool _0dRecv;
@@ -31,13 +32,15 @@ namespace Esper.Model
             get { return _port != null && _port.IsOpen; }
         }
 
-        public SerialBaudRate BaudRate { get; set; }
-        public string PortName { get; set; }
+        public EsperOptions.ComPortOptions Options
+        {
+            get { return _options; }
+            set { if (value != null) _options = value; }
+        }
 
         public EspComConnector()
         {
-            BaudRate = SerialBaudRate.BR_115200;
-            PortName = GetAvailablePortNames().FirstOrDefault();
+            _options = new EsperOptions.ComPortOptions();
         }
 
         public static string[] GetAvailablePortNames()
@@ -52,15 +55,15 @@ namespace Esper.Model
 
             try
             {
-                _port = new SerialPort(PortName);
-                _port.BaudRate = (int)BaudRate;
+                _port = new SerialPort(Options.Name);
+                _port.BaudRate = (int)Options.BaudRate;
                 _port.Parity = Parity.None;
                 _port.StopBits = StopBits.One;
                 _port.DataBits = 8;
                 _port.Handshake = Handshake.None;
                 //_port.NewLine = "\r\n";
-                //_port.DtrEnable = true;
-                //_port.RtsEnable = true;
+                _port.DtrEnable = true;
+                _port.RtsEnable = true;
                 //_port.Encoding = Encoding.GetEncoding(1251);
 
                 _port.WriteTimeout = 5000;
@@ -119,10 +122,10 @@ namespace Esper.Model
             for (int i = 0; i < arr.Length; i++)
             {
                 _port.Write(arr, i, 1);
-                Thread.Sleep(i == 0 ? 100 : 5);
+                Thread.Sleep(i == 0 ? Options.AfterFirstSymbolDelay : Options.AfterSymbolDelay);
             }
             _port.Write(new byte[] { 0x0d }, 0, 1);
-            Thread.Sleep(10);
+            Thread.Sleep(Options.AfterSymbolDelay);
         }
 
         private void ThreadReaderProc()

@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\EspComConnector.cs" />
+    <Compile Include="Model\EsperOptions.cs" />
     <Compile Include="Model\EsperProject.cs" />
     <Compile Include="Model\EspExecutor.cs" />
     <Compile Include="Model\FileStore.cs" />
@@ -71,6 +72,12 @@
     <Compile Include="WinForms\ICopyPaste.cs" />
     <Compile Include="WinForms\IFileOpen.cs" />
     <Compile Include="WinForms\IFileSave.cs" />
+    <Compile Include="WinForms\OptionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinForms\OptionsForm.Designer.cs">
+      <DependentUpon>OptionsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="WinForms\ScintillaHelper.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
@@ -87,6 +94,9 @@
     </Compile>
     <EmbeddedResource Include="WinForms\CreateProjectForm.resx">
       <DependentUpon>CreateProjectForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinForms\OptionsForm.resx">
+      <DependentUpon>OptionsForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

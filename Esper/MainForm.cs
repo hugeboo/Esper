@@ -21,6 +21,8 @@ namespace Esper
         private FilesTabController _filesTabController;
         private ConsoleController _consoleController;
 
+        private EsperOptions _options = new EsperOptions();
+
         public MainForm()
         {
             InitializeComponent();
@@ -34,11 +36,10 @@ namespace Esper
             _filesTabController = new FilesTabController(filesTabControl, _project, _filesTreeController);
 
             _connector = new EspComConnector();
-            _connector.PortName = "COM5";
-            _connector.BaudRate = EspComConnector.SerialBaudRate.BR_115200;
-            //_connector.Connect();
 
             _consoleController = new ConsoleController(_connector, consoleTextBox, sendConsoleTextBox);
+
+            ApplyOptions();
         }
 
         private void cutToolStripButton_Click(object sender, EventArgs e)
@@ -170,6 +171,28 @@ namespace Esper
             }
         }
 
+        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var dlg = new OptionsForm();
+            dlg.SetOptions(_options);
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                _options = dlg.GetOptions();
+                ApplyOptions();
+            }
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+
+        }
+
+        private void ApplyOptions()
+        {
+            _connector.Disconnect();
+            _connector.Options = (EsperOptions.ComPortOptions)_options.ComPort.Clone();
+        }
+
         private void updateTimer_Tick(object sender, EventArgs e)
         {
             // Edit
@@ -195,7 +218,7 @@ namespace Esper
 
             // Tools
             customizeToolStripMenuItem.Enabled = false;
-            optionsToolStripMenuItem.Enabled = false;
+            optionsToolStripMenuItem.Enabled = true;
 
             // Help
             helpToolStripButton.Enabled = false;

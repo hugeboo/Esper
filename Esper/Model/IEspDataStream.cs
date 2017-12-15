@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Esper.Model
 {
-    internal interface IEspDataStream
+    public interface IEspDataStream
     {
         event EventHandler<byte> RawByteReceived;
         event EventHandler<string> RawLineReceived;
@@ -15,7 +15,7 @@ namespace Esper.Model
         void WriteLine(string line);
     }
 
-    internal sealed class LineReceivedEventArgs : EventArgs
+    public sealed class LineReceivedEventArgs : EventArgs
     {
         public enum LineType
         {
