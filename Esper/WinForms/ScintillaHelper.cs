@@ -67,7 +67,7 @@ namespace Esper.WinForms
             editor.Lexer = Lexer.Cpp;
 
             // Set the keywords
-            editor.SetKeywords(0, "local nill function end then abstract as base break case catch checked continue default delegate do else event explicit extern false finally fixed for foreach goto if implicit in interface internal is lock namespace new null object operator out override params private protected public readonly ref return sealed sizeof stackalloc switch this throw true try typeof unchecked unsafe using virtual while");
+            editor.SetKeywords(0, "local nil function end then abstract as base break case catch checked continue default delegate do else event explicit extern false finally fixed for foreach goto if implicit in interface internal is lock namespace new null object operator out override params private protected public readonly ref return sealed sizeof stackalloc switch this throw true try typeof unchecked unsafe using virtual while");
             editor.SetKeywords(1, "collectgarbage wifi print sntp adc node bool byte char class const decimal double enum float int long sbyte short static string struct uint ulong ushort void");
         }
 
