@@ -52,6 +52,9 @@
     <Compile Include="Model\FileStore.cs" />
     <Compile Include="Model\IEspConnector.cs" />
     <Compile Include="Model\IEspDataStream.cs" />
+    <Compile Include="Utils\BackgroundWorker2.cs" />
+    <Compile Include="Utils\QRSpinLock.cs" />
+    <Compile Include="Utils\SequentialPerformer2.cs" />
     <Compile Include="WinForms\ConsoleController.cs" />
     <Compile Include="WinForms\CreateProjectForm.cs">
       <SubType>Form</SubType>

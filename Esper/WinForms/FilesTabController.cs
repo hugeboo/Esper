@@ -5,10 +5,12 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using ScintillaNET;
+using Utilities;
 using Esper.Model;
 
 namespace Esper.WinForms
@@ -16,9 +18,11 @@ namespace Esper.WinForms
     internal sealed class FilesTabController : ICopyPaste, IFileSave
     {
         private readonly TabControl _tabControl;
-        private readonly EsperProject _project;
+        //private readonly EsperProject _project;
         private readonly FilesTreeViewController _treeViewController;
         private readonly List<TabItem> _items = new List<TabItem>();
+
+        private readonly BackgroundWorker2 _worker;
 
         public bool CanCut
         {
@@ -112,10 +116,10 @@ namespace Esper.WinForms
             }
         }
 
-        public FilesTabController(TabControl tabControl, EsperProject project, FilesTreeViewController treeViewController)
+        public FilesTabController(TabControl tabControl, FilesTreeViewController treeViewController)
         {
             _tabControl = tabControl;
-            _project = project;
+            //_project = project;
             _treeViewController = treeViewController;
 
             _tabControl.TabPages.Clear();
@@ -124,6 +128,8 @@ namespace Esper.WinForms
             _tabControl.ContextMenuStrip.ItemClicked += contextMenuStrip_ItemClicked;
             _tabControl.MouseDown += tabControl_MouseDown;
             _treeViewController.NodeDoubleClick += treeViewController_NodeDoubleClick;
+
+            _worker = new BackgroundWorker2(tabControl);
         }
 
         public void Cut()
@@ -164,11 +170,32 @@ namespace Esper.WinForms
 
         public void SaveFile()
         {
+            SaveFile(null);
+        }
+
+        public void SaveFile(Action<Exception> result)
+        {
             var item = GetSelectedItem();
             if (item != null)
             {
-                _project.FileStore.SaveAllText(item.File, item.Editor.Text);//!!!! thread?
-                SetSavePoint(item);
+                var text = item.Editor.Text;
+                _worker.Do(() =>
+                {
+                    _treeViewController.Project.FileStore.SaveAllText(item.File, text);
+                },
+                (e) =>
+                {
+                    if (e != null)
+                    {
+                        MessageBox.Show("FileStore error occured:\n" + e.Message ?? e.ToString(),
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    }
+                    else
+                    {
+                        SetSavePoint(item);
+                    }
+                    result?.Invoke(e);
+                });
             }
         }
 
@@ -270,12 +297,30 @@ namespace Esper.WinForms
                 }
 
                 item.Editor.TextChanged += editor_TextChanged;
-                item.Editor.Text = _project.FileStore.ReadAllText(file); //!!!! thread?
-                SetSavePoint(item);
+
+                _worker.Do(() =>
+                {
+                    return _treeViewController.Project.FileStore.ReadAllText(file);
+                },
+                (s,e) =>
+                {
+                    if (e != null)
+                    {
+                        MessageBox.Show("FileStore error occured:\n" + e.Message ?? e.ToString(),
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    }
+                    else
+                    {
+
+                        item.Editor.Text = s;
+                        SetSavePoint(item);
+                    }
+                });
 
                 _tabControl.TabPages.Add(item.Page);
                 _items.Add(item);
             }
+
             _tabControl.SelectedTab = item.Page;
             item.Editor.Focus();
             _tabControl.Visible = true;

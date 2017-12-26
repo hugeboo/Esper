@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using Utilities;
 using Esper.Model;
 
 namespace Esper.WinForms
@@ -17,6 +18,8 @@ namespace Esper.WinForms
 
         private readonly List<string> _lstHistory = new List<string>();
         private int _historyIndex = 0;
+
+        private readonly BackgroundWorker2 _worker;
 
         public bool IsConnected
         {
@@ -32,6 +35,8 @@ namespace Esper.WinForms
             _connector.LineReceived += connector_LineReceived;
             _sendTextBox.KeyPress += sendTextBox_KeyPress;
             _sendTextBox.KeyDown += sendTextBox_KeyDown;
+
+            _worker = new BackgroundWorker2(consoleTextBox);
         }
 
         public void Send(string command)
@@ -44,8 +49,25 @@ namespace Esper.WinForms
             _consoleTextBox.Text = null;
         }
 
+        private void ConnectorWriteLine(string line)
+        {
+            _worker.Do(() =>
+            {
+                if (_connector.IsConnected) _connector.WriteLine(line);
+            },
+            (e) =>
+            {
+                if (e != null)
+                {
+                    MessageBox.Show("Connector error occured:\n" + e.Message ?? e.ToString(), 
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                }
+            });
+        }
+
         private void connector_LineReceived(object sender, LineReceivedEventArgs e)
         {
+#warning ограничить кол-во текста в контроле консоли
             _consoleTextBox.BeginInvoke(new Action(() =>
             {
                 _consoleTextBox.AppendText(e.Line);
@@ -60,7 +82,8 @@ namespace Esper.WinForms
         {
             if (e.KeyChar == (int)Keys.Enter)
             {
-                if (_connector.IsConnected) _connector.WriteLine(_sendTextBox.Text);
+#warning ограничить кол-во истории (и сохранять ее при выходе?)
+                ConnectorWriteLine(_sendTextBox.Text);
                 if (!string.IsNullOrEmpty(_sendTextBox.Text))
                 {
                     _lstHistory.Remove(_sendTextBox.Text);
@@ -72,7 +95,7 @@ namespace Esper.WinForms
             }
             else if (e.KeyChar == (int)Keys.Escape)
             {
-                if (_connector.IsConnected) _connector.WriteLine("\x1b");
+                ConnectorWriteLine("\x1b");
                 _sendTextBox.Text = null;
                 e.Handled = true;
             }

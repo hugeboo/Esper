@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using Utilities;
 using Esper.Model;
 
 namespace Esper.WinForms
@@ -20,6 +21,8 @@ namespace Esper.WinForms
         private readonly TreeView _treeView;
         private EsperProject _project;
         private FileStore.Directory _root;
+
+        private readonly BackgroundWorker2 _worker;
 
         public EsperProject Project
         {
@@ -35,6 +38,8 @@ namespace Esper.WinForms
             _treeView.BeforeCollapse += treeView_BeforeCollapse;
             _treeView.AfterSelect += treeView_AfterSelect;
             _treeView.NodeMouseDoubleClick += treeView_NodeMouseDoubleClick;
+
+            _worker = new BackgroundWorker2(treeView);
         }
 
         private void treeView_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -72,11 +77,14 @@ namespace Esper.WinForms
         private void Init()
         {
             _treeView.Nodes.Clear();
-            var node = new TreeNode(_project.Name);
-            node.Tag = _root;
-            _treeView.Nodes.Add(node);
-            _Init(_root, node.Nodes);
-            node.Expand();
+            if (_root != null && _project != null)
+            {
+                var node = new TreeNode(_project.Name);
+                node.Tag = _root;
+                _treeView.Nodes.Add(node);
+                _Init(_root, node.Nodes);
+                node.Expand();
+            }
         }
 
         public void CreateFile()
@@ -84,9 +92,7 @@ namespace Esper.WinForms
             var dlg = new CreateProjectForm();
             if (dlg.ShowDialog() == DialogResult.OK)
             {
-                _project = new EsperProject(dlg.FullFileName, true);
-                _root = _project.FileStore.GetFullTree();
-                Init();
+                OpenProject(dlg.FullFileName, true);
             }
         }
 
@@ -104,9 +110,26 @@ namespace Esper.WinForms
                     fileName = dlg.FileName;
                 }
             }
-            _project = new EsperProject(fileName, true);
-            _root = _project.FileStore.GetFullTree();
-            Init();
+            OpenProject(fileName, true);
+        }
+
+        private void OpenProject(string fileName, bool create)
+        {
+            _worker.Do(() =>
+            {
+                _project = new EsperProject(fileName, create);
+                _root = _project.FileStore.GetFullTree();
+            },
+            (e) =>
+            {
+                if (e != null)
+                {
+                    MessageBox.Show("FileStore error occured:\n" + e.Message ?? e.ToString(),
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    _root = null;
+                }
+                Init();
+            });
         }
 
         private void _Init(FileStore.Directory root, TreeNodeCollection nodes)

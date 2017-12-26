@@ -5,9 +5,11 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using Utilities;
 using Esper.Model;
 using Esper.WinForms;
 
@@ -23,6 +25,8 @@ namespace Esper
 
         private EsperOptions _options = new EsperOptions();
 
+        private readonly BackgroundWorker2 _worker;
+
         public MainForm()
         {
             InitializeComponent();
@@ -33,11 +37,13 @@ namespace Esper
             _filesTreeController.OpenFile("d:/ESP8266/EsperProjects/Demo/Demo.esper");
             _project = _filesTreeController.Project;
 
-            _filesTabController = new FilesTabController(filesTabControl, _project, _filesTreeController);
+            _filesTabController = new FilesTabController(filesTabControl, _filesTreeController);
 
             _connector = new EspComConnector();
 
             _consoleController = new ConsoleController(_connector, consoleTextBox, sendConsoleTextBox);
+
+            _worker = new BackgroundWorker2(this);
 
             ApplyOptions();
         }
@@ -144,29 +150,37 @@ namespace Esper
 
         private void connectToolStripButton_Click(object sender, EventArgs e)
         {
-            if (!_connector.IsConnected) _connector.Connect();
+            DoConnector(() => { _connector.Connect(); }, false);
+            //if (!_connector.IsConnected) _connector.Connect();
         }
 
         private void disconnectToolStripButton_Click(object sender, EventArgs e)
         {
-            if (_connector.IsConnected) _connector.Disconnect();
+            DoConnector(() => { _connector.Disconnect(); });
+            //if (_connector.IsConnected) _connector.Disconnect();
         }
 
         private void restartToolStripButton_Click(object sender, EventArgs e)
         {
-            if (_connector.IsConnected) _connector.WriteLine("node.restart()");
+            DoConnector(() => { _connector.WriteLine("node.restart()"); });
+            //if (_connector.IsConnected) _connector.WriteLine("node.restart()");
         }
 
         private void uploadToolStripButton_Click(object sender, EventArgs e)
         {
             if (_connector.IsConnected && _filesTabController.CanSaveFile)
             {
-                _filesTabController.SaveFile();
-                var file = _filesTabController.GetSelectedFile();
-                Task.Run(() =>
+                _filesTabController.SaveFile((ee) =>
                 {
-                    var dst = file.GetPath();
-                    EspExecutor.DoWriteFile(_connector, file.GetFullSystemPath(), dst);
+                    if (ee == null)
+                    {
+                        var file = _filesTabController.GetSelectedFile();
+                        var dst = file.GetPath();
+                        DoConnector(() =>
+                        {
+                            EspExecutor.DoWriteFile(_connector, file.GetFullSystemPath(), dst);
+                        });
+                    }
                 });
             }
         }
@@ -189,8 +203,31 @@ namespace Esper
 
         private void ApplyOptions()
         {
-            _connector.Disconnect();
-            _connector.Options = (EsperOptions.ComPortOptions)_options.ComPort.Clone();
+            DoConnector(() =>
+            {
+                _connector.Disconnect();
+                _connector.Options = (EsperOptions.ComPortOptions)_options.ComPort.Clone();
+            });
+        }
+
+        private void DoConnector(Action doWork, bool requiredConnection = true)
+        {
+            _worker.Do(() =>
+            {
+                if ((requiredConnection && _connector.IsConnected) ||
+                    (!requiredConnection && !_connector.IsConnected))
+                {
+                    doWork();
+                }
+            },
+            (e) =>
+            {
+                if (e != null)
+                {
+                    MessageBox.Show("Connector error occured:\n" + e.Message ?? e.ToString(),
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                }
+            });
         }
 
         private void updateTimer_Tick(object sender, EventArgs e)
