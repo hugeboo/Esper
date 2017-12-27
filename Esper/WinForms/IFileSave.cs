@@ -10,11 +10,13 @@ namespace Esper.WinForms
     {
         bool CanSaveFile { get; }
         bool CanSaveAsFile { get; }
+        bool CanSaveAllFiles { get; }
         bool CanPrintFile { get; }
         bool CanPrintPreviewFile { get; }
 
         void SaveFile();
         void SaveAsFile();
+        void SaveAllFiles();
         void PrintFile();
         void PrintPreviewFile();
     }

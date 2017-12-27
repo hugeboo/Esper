@@ -45,7 +45,7 @@ namespace Utilities
         {
             Action<T, Exception> resultProc = (t, ex) =>
             {
-                _Control.BeginInvoke(new Action(() =>//.SafeBeginInvoke(() =>
+                SafeBeginInvoke(() =>
                 {
                     try
                     {
@@ -56,7 +56,7 @@ namespace Utilities
                         if (showWaitText && _EndWait != null)
                             _EndWait();
                     }
-                }));
+                });
             };
 
             try
@@ -83,66 +83,27 @@ namespace Utilities
                 resultProc(default(T), ex);
             }
         }
-        //public void Do<T>(
-        //    Func<T> doWork,
-        //    Action<T, Exception> result,
-        //    bool showWaitText = true,
-        //    string waitText = null,
-        //    bool callEndWaitAfterResult = true,
-        //    bool logDbgException = true)
-        //{
-        //    Action<T, Exception> resultProc = (t, ex) =>
-        //    {
-        //        if (ex != null && logDbgException)
-        //            _Logger?.LogDbgException(ex);
 
-        //        _Control.SafeBeginInvoke(() =>
-        //        {
-        //            if (callEndWaitAfterResult)
-        //            {
-        //                try
-        //                {
-        //                    result(t, ex);
-        //                }
-        //                finally
-        //                {
-        //                    if (showWaitText && _EndWait != null)
-        //                        _EndWait();
-        //                }
-        //            }
-        //            else
-        //            {
-        //                if (showWaitText && _EndWait != null)
-        //                    _EndWait();
-
-        //                result(t, ex);
-        //            }
-        //        });
-        //    };
-
-        //    try
-        //    {
-        //        if (showWaitText && _BeginWait != null)
-        //            _BeginWait(waitText);
-
-        //        _SeqPerformer.AddTask(() =>
-        //        {
-        //            Utilities.CultureHelper.ResetCurrentThreadLanguage();
-        //            try
-        //            {
-        //                var t = doWork();
-        //                resultProc(t, null);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                resultProc(default(T), ex);
-        //            }
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        resultProc(default(T), ex);
-        //    }
-        //}
+        private bool SafeBeginInvoke(Action action)
+        {
+            var c = _Control;
+            if (c == null || !c.IsHandleCreated || c.IsDisposed) return false;
+            try
+            {
+                if (c.InvokeRequired)
+                {
+                    c.BeginInvoke(action);
+                }
+                else
+                {
+                    action();
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

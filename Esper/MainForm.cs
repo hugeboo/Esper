@@ -17,13 +17,12 @@ namespace Esper
 {
     public partial class MainForm : Form
     {
-        private EsperProject _project;
         private EspComConnector _connector;
         private FilesTreeViewController _filesTreeController;
         private FilesTabController _filesTabController;
         private ConsoleController _consoleController;
 
-        private EsperOptions _options = new EsperOptions();
+        private EsperOptions _options;
 
         private readonly BackgroundWorker2 _worker;
 
@@ -34,18 +33,11 @@ namespace Esper
             splitContainer2_Panel1_Resize(this, EventArgs.Empty);
 
             _filesTreeController = new FilesTreeViewController(filesTreeView);
-            _filesTreeController.OpenFile("d:/ESP8266/EsperProjects/Demo/Demo.esper");
-            _project = _filesTreeController.Project;
-
             _filesTabController = new FilesTabController(filesTabControl, _filesTreeController);
-
             _connector = new EspComConnector();
-
             _consoleController = new ConsoleController(_connector, consoleTextBox, sendConsoleTextBox);
 
             _worker = new BackgroundWorker2(this);
-
-            ApplyOptions();
         }
 
         private void cutToolStripButton_Click(object sender, EventArgs e)
@@ -128,9 +120,9 @@ namespace Esper
             _filesTabController.SaveFile();
         }
 
-        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _filesTabController.SaveAsFile();
+            _filesTabController.SaveAllFiles();
         }
 
         private void printToolStripMenuItem_Click(object sender, EventArgs e)
@@ -196,9 +188,62 @@ namespace Esper
             }
         }
 
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                _options = EsperOptions.Load();
+            }
+            catch
+            {
+                _options = new EsperOptions();
+            }
+            ApplyOptions();
+        }
+
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_options.LastProjectFileName))
+            {
+                _filesTreeController.OpenFile(_options.LastProjectFileName, (ee) =>
+                {
+                    if (ee == null)
+                    {
+                        if (_options.LastOpenedFiles != null)
+                        {
+                            foreach (var p in _options.LastOpenedFiles)
+                            {
+                                var f = _filesTreeController.FindFile(p);
+                                if (f != null)
+                                {
+                                    _filesTabController.AddOrActivatePage(f);
+                                }
+                            }
+                            if (_options.LastActiveFile != null)
+                            {
+                                _filesTabController.AddOrActivatePage(_filesTreeController.FindFile(_options.LastActiveFile));
+                            }
+                        }
+                    }
+                });
+            }
+            else
+            {
+#warning нужно какое-нибудь цивильное окно для такого случая
+                _filesTreeController.OpenFile("projects\\default\\default.esper");
+            }
+        }
+
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-
+            try
+            {
+                _options.LastProjectFileName = _filesTreeController?.Project?.FullFileName;
+                _options.LastOpenedFiles = _filesTabController?.GetAllFiles().Select(f => f.GetPath()).ToArray();
+                _options.LastActiveFile = _filesTabController.GetSelectedFile()?.GetPath();
+                _options.Save();
+            }
+            catch { }
         }
 
         private void ApplyOptions()
@@ -206,8 +251,8 @@ namespace Esper
             DoConnector(() =>
             {
                 _connector.Disconnect();
-                _connector.Options = (EsperOptions.ComPortOptions)_options.ComPort.Clone();
             });
+            _connector.Options = (EsperOptions.ComPortOptions)_options.ComPort.Clone();
         }
 
         private void DoConnector(Action doWork, bool requiredConnection = true)
@@ -249,7 +294,7 @@ namespace Esper
             printToolStripButton.Enabled = _filesTabController.CanPrintFile;
 
             saveToolStripMenuItem.Enabled = _filesTabController.CanSaveFile;
-            saveAsToolStripMenuItem.Enabled = _filesTabController.CanSaveAsFile;
+            saveAllToolStripMenuItem.Enabled = _filesTabController.CanSaveAllFiles;
             printToolStripMenuItem.Enabled = _filesTabController.CanPrintFile;
             printPreviewToolStripMenuItem.Enabled = _filesTabController.CanPrintPreviewFile;
 
@@ -270,6 +315,8 @@ namespace Esper
             if (consoleTabPage.ImageKey != ik) consoleTabPage.ImageKey = ik;
             var t = _connector.IsConnected ? "Connected" : "Disconnected";
             if (consoleTabPage.ToolTipText != t) consoleTabPage.ToolTipText = t;
+            var tt = _connector.IsConnected ? $"Console: {_options.ComPort.Name}" : "Console: disconnected";
+            if (consoleTabPage.Text != tt) consoleTabPage.Text = tt;
 
             // Connection
             connectToolStripButton.Enabled = !_connector.IsConnected;

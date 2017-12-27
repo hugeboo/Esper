@@ -96,6 +96,14 @@ namespace Esper.WinForms
             }
         }
 
+        public bool CanSaveAllFiles
+        {
+            get
+            {
+                return _items.Any();// it => it.Editor.Modified);
+            }
+        }
+
         public bool CanPrintFile
         {
             get
@@ -128,6 +136,7 @@ namespace Esper.WinForms
             _tabControl.ContextMenuStrip.ItemClicked += contextMenuStrip_ItemClicked;
             _tabControl.MouseDown += tabControl_MouseDown;
             _treeViewController.NodeDoubleClick += treeViewController_NodeDoubleClick;
+            _treeViewController.BeforeInitialize += treeViewController_BeforeInitialize;
 
             _worker = new BackgroundWorker2(tabControl);
         }
@@ -176,6 +185,25 @@ namespace Esper.WinForms
         public void SaveFile(Action<Exception> result)
         {
             var item = GetSelectedItem();
+            SaveFile(item, result);
+        }
+
+        public void SaveAsFile()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SaveAllFiles()
+        {
+            var items = _items.Where(it => it.Editor.Modified);
+            foreach(var item in items)
+            {
+                SaveFile(item, null);
+            }
+        }
+
+        private void SaveFile(TabItem item, Action<Exception> result)
+        {
             if (item != null)
             {
                 var text = item.Editor.Text;
@@ -199,11 +227,6 @@ namespace Esper.WinForms
             }
         }
 
-        public void SaveAsFile()
-        {
-            //...
-        }
-
         public void PrintFile()
         {
             //...
@@ -219,10 +242,17 @@ namespace Esper.WinForms
             return _items.FirstOrDefault(it => it.Page == _tabControl.SelectedTab)?.File;
         }
 
+        public FileStore.File[] GetAllFiles()
+        {
+            return _items.Select(it => it.File).ToArray();
+        }
+
         public void CloseAllTab()
         {
+#warning сохранять перед закрытием
             _tabControl.TabPages.Clear();
             _items.Clear();
+            _tabControl.Visible = false;
         }
 
         private TabItem GetSelectedItem()
@@ -244,22 +274,28 @@ namespace Esper.WinForms
 
         private void contextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
+#warning сохранять перед закрытием
             if (e.ClickedItem?.Tag?.ToString() == "CLOSE_TAB")
             {
                 var page = _tabControl.SelectedTab;
                 _tabControl.TabPages.Remove(page);
                 DeleteItem(page);
+                _tabControl.Visible = _tabControl.TabPages.Count > 0;
             }
             else if (e.ClickedItem?.Tag?.ToString() == "CLOSE_ALL_TAB")
             {
                 CloseAllTab();
             }
-            _tabControl.Visible = _tabControl.TabPages.Count > 0;
         }
 
         private void editor_TextChanged(object sender, EventArgs e)
         {
             CheckTextModified(_items.FirstOrDefault(it => it.Editor == sender));
+        }
+
+        private void treeViewController_BeforeInitialize(object sender, EventArgs e)
+        {
+            CloseAllTab();
         }
 
         private void treeViewController_NodeDoubleClick(object sender, FilesTreeViewController.NodeEventArgs e)
@@ -270,7 +306,7 @@ namespace Esper.WinForms
             }
         }
 
-        private void AddOrActivatePage(FileStore.File file)
+        public void AddOrActivatePage(FileStore.File file)
         {
             var item = _items.FirstOrDefault(it => Equals(it.File, file));
             if (item == null)

@@ -12,9 +12,9 @@ namespace Esper.WinForms
 {
     internal sealed class ConsoleController
     {
-        private IEspConnector _connector;
-        private TextBox _consoleTextBox;
-        private TextBox _sendTextBox;
+        private readonly IEspConnector _connector;
+        private readonly TextBox _consoleTextBox;
+        private readonly TextBox _sendTextBox;
 
         private readonly List<string> _lstHistory = new List<string>();
         private int _historyIndex = 0;

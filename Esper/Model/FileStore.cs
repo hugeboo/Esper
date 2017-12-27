@@ -83,6 +83,27 @@ namespace Esper.Model
             public List<File> Files { get; private set; } = new List<File>();
             public List<Directory> Directories { get; private set; } = new List<Directory>();
 
+            public static FileStore.File FindFile(FileStore.Directory dir, Func<FileStore.File, bool> compare)
+            {
+                if (dir != null)
+                {
+                    if (dir.Files != null)
+                    {
+                        var f = dir.Files.FirstOrDefault(it => compare(it));
+                        if (f != null) return f;
+                    }
+                    if (dir.Directories != null)
+                    {
+                        foreach (var d in dir.Directories)
+                        {
+                            var f = FindFile(d, compare);
+                            if (f != null) return f;
+                        }
+                    }
+                }
+                return null;
+            }
+
             public override bool Equals(object obj)
             {
                 var other = obj as Directory;

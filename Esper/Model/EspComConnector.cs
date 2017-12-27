@@ -10,11 +10,6 @@ namespace Esper.Model
 {
     public sealed class EspComConnector : IEspConnector
     {
-        public enum SerialBaudRate
-        {
-            BR_9600 = 9600, BR_115200 = 115200
-        }
-
         public event EventHandler<byte> RawByteReceived;
         public event EventHandler<string> RawLineReceived;
         public event EventHandler<LineReceivedEventArgs> LineReceived;

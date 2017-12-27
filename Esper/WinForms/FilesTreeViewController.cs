@@ -17,6 +17,7 @@ namespace Esper.WinForms
     {
         public event EventHandler<NodeEventArgs> FocusedNodeChanged;
         public event EventHandler<NodeEventArgs> NodeDoubleClick;
+        public event EventHandler BeforeInitialize;
 
         private readonly TreeView _treeView;
         private EsperProject _project;
@@ -38,8 +39,97 @@ namespace Esper.WinForms
             _treeView.BeforeCollapse += treeView_BeforeCollapse;
             _treeView.AfterSelect += treeView_AfterSelect;
             _treeView.NodeMouseDoubleClick += treeView_NodeMouseDoubleClick;
+            _treeView.ContextMenuStrip.ItemClicked += contextMenuStrip_ItemClicked;
+            _treeView.ContextMenuStrip.Opening += contextMenuStrip_Opening;
 
             _worker = new BackgroundWorker2(treeView);
+        }
+
+        public FileStore.File FindFile(string path)
+        {
+            return FileStore.Directory.FindFile(_root, f => f.GetPath() == path);
+        }
+
+        private void ChangeFileName(string oldFullFilePath, string newFullFilePath)
+        {
+            var node = _FindNode(_treeView.Nodes, n =>
+            {
+                var f = n.Tag as FileStore.File;
+                return f != null && f.GetFullSystemPath() == oldFullFilePath;
+            });
+            if (node != null)
+            {
+                var f = node.Tag as FileStore.File;
+                f.Name = System.IO.Path.GetFileName(newFullFilePath);
+                f.Type = FileStore.File.GetFileType(System.IO.Path.GetExtension(newFullFilePath));
+                node.Name = f.Name;
+            }
+        }
+
+        private TreeNode _FindNode(TreeNodeCollection nodes, Func<TreeNode,bool> compare)
+        {
+            if (nodes != null)
+            {
+                foreach(TreeNode node in nodes)
+                {
+                    if (compare(node)) return node;
+                    var n = _FindNode(node.Nodes, compare);
+                    if (n != null) return node;
+                }
+            }
+            return null;
+        }
+
+        private void contextMenuStrip_Opening(object sender, CancelEventArgs e)
+        {
+            var node = _treeView.SelectedNode;
+            if (node == null || node.Tag == null)
+            {
+                e.Cancel = true;
+            }
+            else
+            {
+                FindContextMenuItem("CREATE_NEW_FOLDER").Enabled = node.Tag is FileStore.Directory;
+                FindContextMenuItem("CREATE_NEW_FILE").Enabled = node.Tag is FileStore.Directory;
+                FindContextMenuItem("ADD_EXISTING_FILE").Enabled = node.Tag is FileStore.Directory;
+                FindContextMenuItem("RENAME").Enabled = node.Tag is FileStore.Directory || node.Tag is FileStore.File;
+            }
+        }
+
+        private void contextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            var node = _treeView.SelectedNode;
+            if (node == null || node.Tag == null)
+            {
+                if (e.ClickedItem?.Tag?.ToString() == "CREATE_NEW_FOLDER")
+                {
+                    //...
+                }
+                else if (e.ClickedItem?.Tag?.ToString() == "CREATE_NEW_FILE")
+                {
+                    //...
+                }
+                else if (e.ClickedItem?.Tag?.ToString() == "ADD_EXISTING_FILE")
+                {
+                    //...
+                }
+                else if (e.ClickedItem?.Tag?.ToString() == "RENAME")
+                {
+                    //...
+                }
+            }
+        }
+
+        private ToolStripItem FindContextMenuItem(string tag)
+        {
+            foreach(ToolStripItem it in _treeView.ContextMenuStrip.Items)
+            {
+                if (it.Tag!=null && string.Equals(it.Tag as string, tag))
+                {
+                    return it;
+                }
+            }
+            return null;
         }
 
         private void treeView_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -89,14 +179,24 @@ namespace Esper.WinForms
 
         public void CreateFile()
         {
+            CreateFile(null);
+        }
+
+        public void CreateFile(Action<Exception> result)
+        {
             var dlg = new CreateProjectForm();
             if (dlg.ShowDialog() == DialogResult.OK)
             {
-                OpenProject(dlg.FullFileName, true);
+                OpenProject(dlg.FullFileName, true, result);
             }
         }
 
         public void OpenFile(string fileName)
+        {
+            OpenFile(fileName, null);
+        }
+
+        public void OpenFile(string fileName, Action<Exception> result)
         {
             if (string.IsNullOrEmpty(fileName))
             {
@@ -109,16 +209,22 @@ namespace Esper.WinForms
                 {
                     fileName = dlg.FileName;
                 }
+                else
+                {
+                    return;
+                }
             }
-            OpenProject(fileName, true);
+            OpenProject(fileName, true, result);
         }
 
-        private void OpenProject(string fileName, bool create)
+        private void OpenProject(string fileName, bool create, Action<Exception> result)
         {
+            EsperProject p = null;
+            FileStore.Directory r = null;
             _worker.Do(() =>
             {
-                _project = new EsperProject(fileName, create);
-                _root = _project.FileStore.GetFullTree();
+                p = new EsperProject(fileName, create);
+                r = p.FileStore.GetFullTree();
             },
             (e) =>
             {
@@ -126,9 +232,15 @@ namespace Esper.WinForms
                 {
                     MessageBox.Show("FileStore error occured:\n" + e.Message ?? e.ToString(),
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    _root = null;
                 }
-                Init();
+                else
+                {
+                    BeforeInitialize?.Invoke(this, EventArgs.Empty);
+                    _project = p;
+                    _root = r;
+                    Init();
+                }
+                result?.Invoke(e);
             });
         }
 

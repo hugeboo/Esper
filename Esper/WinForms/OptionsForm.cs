@@ -25,8 +25,8 @@ namespace Esper.WinForms
                 portComboBox.Enabled = false;
             }
 
-            var bauds = Enum.GetValues(typeof(EspComConnector.SerialBaudRate)).
-                Cast<EspComConnector.SerialBaudRate>().
+            var bauds = Enum.GetValues(typeof(SerialBaudRate)).
+                Cast<SerialBaudRate>().
                 Select(b => (object)(int)b).ToArray();
             baudComboBox.Items.AddRange(bauds);
         }
@@ -43,7 +43,7 @@ namespace Esper.WinForms
         {
             var e = new EsperOptions();
             e.ComPort.Name = (string)portComboBox.SelectedItem;
-            e.ComPort.BaudRate = (EspComConnector.SerialBaudRate)(int)baudComboBox.SelectedItem;
+            e.ComPort.BaudRate = (SerialBaudRate)(int)baudComboBox.SelectedItem;
             e.ComPort.AfterFirstSymbolDelay = (int)firstSymbolDelayNumericUpDown.Value;
             e.ComPort.AfterSymbolDelay = (int)symbolDelayNumericUpDown.Value;
             return e;
