@@ -22,7 +22,7 @@ namespace Esper.Model
                     var trim = line.Trim();
                     if (!string.IsNullOrEmpty(trim) && !trim.StartsWith("--"))
                     {
-                        Do(stream, $"file.writeline([[{trim}]])", 5000);
+                        Do(stream, $"file.writeline([==[{trim}]==])", 5000);
                         Thread.Sleep(50);
                     }
                 }
